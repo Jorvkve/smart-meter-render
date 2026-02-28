@@ -13,7 +13,11 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload_image():
+
+    print("📸 Image received")
+
     if 'image' not in request.files:
+        print("❌ No image")
         return jsonify({"status": "no image"}), 400
 
     file = request.files['image']
@@ -22,6 +26,8 @@ def upload_image():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
 
     file.save(filepath)
+
+    print("✅ Saved:", filename)
 
     return jsonify({
         "status": "success",
