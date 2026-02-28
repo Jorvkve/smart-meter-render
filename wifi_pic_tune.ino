@@ -72,17 +72,27 @@ void setupCamera(){
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
 
-  /* ⭐ เสถียรสุด */
-  config.frame_size = FRAMESIZE_SVGA;
-  config.jpeg_quality = 12;
-  config.fb_count = 1;
+  /* ⭐ เพิ่มคุณภาพภาพ */
+  config.frame_size = FRAMESIZE_XGA;   // 1024x768
+  config.jpeg_quality = 10;            // ชัดขึ้น
+  config.fb_count = 2;
 
   if(esp_camera_init(&config) != ESP_OK){
     Serial.println("Camera Init Failed");
     ESP.restart();
   }
 
-  Serial.println("Camera Ready ✅");
+  sensor_t *s = esp_camera_sensor_get();
+
+  /* ⭐ Optimize สำหรับอ่านเลข */
+  s->set_brightness(s, 1);
+  s->set_contrast(s, 2);
+  s->set_saturation(s, -1);
+  s->set_sharpness(s, 2);
+  s->set_denoise(s, 1);
+  s->set_gainceiling(s, GAINCEILING_8X);
+
+  Serial.println("Camera Ready (AI MODE) ✅");
 }
 
 /* ================= WIFI ================= */
