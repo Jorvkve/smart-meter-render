@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import os
 from datetime import datetime
+from flask import send_from_directory
 
 app = Flask(__name__)
 
@@ -33,3 +34,17 @@ def upload_image():
         "status": "success",
         "filename": filename
     })
+
+@app.route("/images/<filename>")
+def get_image(filename):
+    return send_from_directory("uploads", filename)
+
+@app.route("/gallery")
+def gallery():
+    files = os.listdir("uploads")
+
+    html = ""
+    for file in files:
+        html += f'<img src="/images/{file}" width="300"><br><br>'
+
+    return html
