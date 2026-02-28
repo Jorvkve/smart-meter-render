@@ -15,10 +15,10 @@ def home():
 @app.route("/upload", methods=["POST"])
 def upload_image():
 
-    print("📸 Image received")
+    print("📸 Image received", flush=True)
 
     if 'image' not in request.files:
-        print("❌ No image")
+        print("❌ No image", flush=True)
         return jsonify({"status": "no image"}), 400
 
     file = request.files['image']
@@ -28,7 +28,7 @@ def upload_image():
 
     file.save(filepath)
 
-    print("✅ Saved:", filename)
+    print("✅ Saved:", filename, flush=True)
 
     return jsonify({
         "status": "success",
