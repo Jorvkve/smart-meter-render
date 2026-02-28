@@ -5,8 +5,6 @@ from datetime import datetime
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "uploads"
-
-# สร้างโฟลเดอร์ถ้ายังไม่มี
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/")
@@ -20,7 +18,6 @@ def upload_image():
 
     file = request.files['image']
 
-    # ตั้งชื่อไฟล์ตามเวลา
     filename = datetime.now().strftime("%Y%m%d_%H%M%S.jpg")
     filepath = os.path.join(UPLOAD_FOLDER, filename)
 
@@ -30,9 +27,3 @@ def upload_image():
         "status": "success",
         "filename": filename
     })
-
-import os
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
