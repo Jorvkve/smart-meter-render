@@ -10,18 +10,18 @@
 const char* ssid = "thxrd";
 const char* password = "thxrd123.";
 
-/* ======== RENDER SERVER ======== */
+/* ===== RENDER SERVER ===== */
 const char* serverUrl =
 "https://smart-meter-render.onrender.com/upload";
 
-/* ================= LED ================= */
+/* ================= STATUS LED ================= */
 #define RED_LED 33
 
 void setLED(bool state){
   digitalWrite(RED_LED, state ? LOW : HIGH);
 }
 
-/* ============ CAMERA PIN (AI THINKER) ============ */
+/* ================= CAMERA PIN ================= */
 #define PWDN_GPIO_NUM 32
 #define RESET_GPIO_NUM -1
 #define XCLK_GPIO_NUM 0
@@ -39,15 +39,13 @@ void setLED(bool state){
 #define HREF_GPIO_NUM 23
 #define PCLK_GPIO_NUM 22
 
-/* ================= CAMERA ================= */
-void setupCamera(){
-
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+/* ================= CAMERA SETUP ================= */
+void setupCamera() {
 
   camera_config_t config;
 
   config.ledc_channel = LEDC_CHANNEL_0;
-  config.ledc_timer = LEDC_TIMER_0;
+  config.ledc_timer   = LEDC_TIMER_0;
 
   config.pin_d0 = Y2_GPIO_NUM;
   config.pin_d1 = Y3_GPIO_NUM;
@@ -66,33 +64,66 @@ void setupCamera(){
   config.pin_sscb_sda = SIOD_GPIO_NUM;
   config.pin_sscb_scl = SIOC_GPIO_NUM;
 
-  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_pwdn  = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
 
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
 
-  /* ⭐ เพิ่มคุณภาพภาพ */
-  config.frame_size = FRAMESIZE_XGA;   // 1024x768
-  config.jpeg_quality = 10;            // ชัดขึ้น
+  /* ===============================
+     ⭐ คุณภาพภาพ (สำคัญมาก)
+  =============================== */
+  config.frame_size = FRAMESIZE_SXGA;   // 1280x1024
+  config.jpeg_quality = 5;              // ยิ่งน้อยยิ่งชัด
   config.fb_count = 2;
 
-  if(esp_camera_init(&config) != ESP_OK){
+  if (esp_camera_init(&config) != ESP_OK) {
     Serial.println("Camera Init Failed");
     ESP.restart();
   }
 
+  Serial.println("Camera Init Success ✅");
+
   sensor_t *s = esp_camera_sensor_get();
 
-  /* ⭐ Optimize สำหรับอ่านเลข */
-  s->set_brightness(s, 1);
-  s->set_contrast(s, 2);
-  s->set_saturation(s, -1);
-  s->set_sharpness(s, 2);
-  s->set_denoise(s, 1);
-  s->set_gainceiling(s, GAINCEILING_8X);
+  /* ===============================
+     ⭐ OPTIMIZE สำหรับมิเตอร์ไฟ
+  =============================== */
 
-  Serial.println("Camera Ready (AI MODE) ✅");
+  // ปิด effect
+  s->set_special_effect(s, 0);
+
+  // เพิ่มความคมตัวเลข
+  s->set_contrast(s, 3);
+  s->set_sharpness(s, 3);
+
+  // ลดภาพขาว
+  s->set_brightness(s, -1);
+
+  // ลดสีรบกวน
+  s->set_saturation(s, -2);
+
+  /* ===== Exposure Control ===== */
+  s->set_exposure_ctrl(s, 1);
+  s->set_aec2(s, 1);
+  s->set_ae_level(s, -1);
+
+  /* ===== ลด Noise ===== */
+  s->set_denoise(s, 1);
+
+  /* ===== ปิด Auto Gain (สำคัญมาก) ===== */
+  s->set_gain_ctrl(s, 0);
+  s->set_agc_gain(s, 5);
+
+  /* ===== White Balance ===== */
+  s->set_whitebal(s, 1);
+  s->set_awb_gain(s, 1);
+
+  /* ===== Orientation ===== */
+  s->set_vflip(s, 0);
+  s->set_hmirror(s, 0);
+
+  Serial.println("Meter OCR Mode Ready 🔥");
 }
 
 /* ================= WIFI ================= */
@@ -116,12 +147,19 @@ void connectWiFi(){
   setLED(true);
 }
 
-/* ================= UPLOAD ================= */
+/* ================= SEND PHOTO ================= */
 void sendPhoto(){
 
   if(WiFi.status()!=WL_CONNECTED){
     connectWiFi();
     return;
+  }
+
+  /* ✅ FIX มุมภาพค้าง */
+  for(int i=0;i<3;i++){
+    camera_fb_t *tmp = esp_camera_fb_get();
+    esp_camera_fb_return(tmp);
+    delay(120);
   }
 
   camera_fb_t *fb = esp_camera_fb_get();
@@ -174,11 +212,10 @@ void sendPhoto(){
 
   Serial.printf("HTTP Code: %d\n",httpCode);
 
-  if(httpCode==200){
+  if(httpCode==200)
     Serial.println("Upload Success ✅");
-  }else{
+  else
     Serial.println("Upload Failed ❌");
-  }
 
   free(payload);
   http.end();
@@ -187,7 +224,9 @@ void sendPhoto(){
 
 /* ================= TIMER ================= */
 unsigned long previousMillis = 0;
-const unsigned long interval = 15000; // ⭐ 15 วินาที
+
+/* ⭐ ถ่ายทุก 15 วิ (ดีที่สุดสำหรับอายุบอร์ด) */
+const unsigned long interval = 15000;
 
 /* ================= SETUP ================= */
 void setup(){
