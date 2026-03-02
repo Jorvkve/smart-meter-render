@@ -46,5 +46,10 @@ def gallery():
     html = ""
     for file in files:
         html += f'<img src="/images/{file}" width="300"><br><br>'
+#https://smart-meter-render.onrender.com/gallery
 
     return html
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
