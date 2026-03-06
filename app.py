@@ -1,7 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import os
 from datetime import datetime
-from flask import send_from_directory
 
 app = Flask(__name__)
 
@@ -41,6 +40,7 @@ def get_image(filename):
 
 @app.route("/gallery")
 def gallery():
+
     files = os.listdir("uploads")
 
     html = ""
@@ -49,7 +49,3 @@ def gallery():
 #https://smart-meter-render.onrender.com/gallery
 
     return html
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
