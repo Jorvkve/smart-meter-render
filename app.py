@@ -7,9 +7,11 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
 @app.route("/")
 def home():
     return "ESP32-CAM Upload Server Running"
+
 
 @app.route("/upload", methods=["POST"])
 def upload_image():
@@ -43,7 +45,9 @@ def get_image(filename):
 @app.route("/gallery")
 def gallery():
 
-    files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(".jpg")]
+    files = [f for f in os.listdir(UPLOAD_FOLDER)
+             if f.lower().endswith((".jpg",".jpeg",".png"))]
+
     files = sorted(files, reverse=True)
 
     html = """
@@ -51,7 +55,7 @@ def gallery():
     <head>
     <title>Smart Meter Gallery</title>
 
-    <meta http-equiv="refresh" content="5">
+    <meta http-equiv="refresh" content="7">
 
     <style>
     body{
@@ -108,3 +112,8 @@ def gallery():
     """
 
     return html
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
