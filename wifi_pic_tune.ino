@@ -73,7 +73,7 @@ void setupCamera() {
   /* ===============================
      ⭐ คุณภาพภาพ (สำคัญมาก)
   =============================== */
-  config.frame_size = FRAMESIZE_SXGA;   // 1280x1024
+  config.frame_size = FRAMESIZE_XGA;   // 1280x1024
   config.jpeg_quality = 5;              // ยิ่งน้อยยิ่งชัด
   config.fb_count = 2;
 
@@ -113,7 +113,7 @@ void setupCamera() {
 
   /* ===== ปิด Auto Gain (สำคัญมาก) ===== */
   s->set_gain_ctrl(s, 0);
-  s->set_agc_gain(s, 5);
+  s->set_agc_gain(s, 8);
 
   /* ===== White Balance ===== */
   s->set_whitebal(s, 1);
@@ -176,6 +176,7 @@ void sendPhoto(){
 
   HTTPClient http;
   http.begin(client, serverUrl);
+  http.setTimeout(30000);  // ✅ เพิ่มบรรทัดนี้ — รอ 30 วินาที
 
   String boundary="----ESP32CAM";
 
